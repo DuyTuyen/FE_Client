@@ -6,6 +6,11 @@ import Home from '../pages/Home'
 import Catalog from '../pages/Products'
 import Cart from '../pages/Cart'
 import Product from '../pages/Product'
+import Login from '../pages/Login'
+import Register from '../pages/Register'
+import ForgotPassword from '../pages/ForgotPassword'
+import UpdateNewPassword from '../pages/UpdateNewPassword'
+import Order from '../pages/Order'
 
 const Routes = () => {
     return (
@@ -14,6 +19,11 @@ const Routes = () => {
             <Route path='/product/:id' component={Product}/>
             <Route path='/products' component={Catalog}/>
             <Route path='/cart' component={Cart}/>
+            <Route path='/login' component={Login}/>
+            <Route path='/register' component={Register}/>
+            <Route path='/forgot' component={ForgotPassword}/>
+            <Route path='/order' component={Order}/>
+            <Route path='/updateNewPassword/:token' component={UpdateNewPassword}/>
         </Switch>
     )
 }

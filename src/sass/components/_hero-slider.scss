@@ -4,7 +4,7 @@
     overflow: hidden;
     position: relative;
     margin-bottom: 50px;
-    margin-top: calc(#{$header-height} * -1);
+    margin-top: 5px;
 
     @include tablet {
         margin-top: calc(#{$header-tablet-height} * -1);

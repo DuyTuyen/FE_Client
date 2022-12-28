@@ -12,15 +12,18 @@ import { useDispatch } from 'react-redux'
 import { show, close } from '../redux/responoseAPI/loadingSlice'
 import makeRequest from '../api/axios'
 import { useState } from 'react'
-import { setError } from '../redux/responoseAPI/errorSlice'
+import { clearError, setError } from '../redux/responoseAPI/errorSlice'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
+import { fDate } from '../utils/formatTime'
+import StarRatings from 'react-star-ratings'
 
 const Product = props => {
 
     const { id } = useParams()
 
     const [product, setProduct] = useState(null)
+    const [rates, setRates] = useState([])
 
     const loading = useSelector(state => state.loading.value)
 
@@ -35,6 +38,7 @@ const Product = props => {
             try {
                 const res = await makeRequest.productAPI.getById(id)
                 setProduct(res.data)
+                dispatch(clearError())
             } catch (error) {
                 if (axios.isAxiosError(error))
                     dispatch(setError(error.response ? error.response.data.message : error.message))
@@ -46,7 +50,25 @@ const Product = props => {
                 dispatch(close())
             }
         }
+        async function getRates(id) {
+            dispatch(show())
+            try {
+                const res = await makeRequest.ratingAPI.getByProductId(id)
+                setRates(res.data)
+            } catch (error) {
+                if (axios.isAxiosError(error))
+                    dispatch(setError(error.response ? error.response.data.message : error.message))
+                else
+                    dispatch(setError(error.toString()))
+                history.push("/error")
+            } finally {
+                dispatch(close())
+            }
+        }
         getProductById()
+        if(id){
+            getRates(id)
+        }
     }, [id])
 
 
@@ -56,14 +78,38 @@ const Product = props => {
 
     return (
         loading ?
-        "loading":
-        <Helmet title={product?.name}>
-            <Section>
-                <SectionBody>
-                    <ProductView product={product} />
-                </SectionBody>
-            </Section>
-            {/* <Section>
+            "loading..." :
+            <Helmet title={product?.name}>
+                <Section>
+                    <SectionBody>
+                        <ProductView product={product} />
+                    </SectionBody>
+                </Section>
+                <div style={{ marginTop: "30px" }} class="tab-content">
+                    <div class="tab-pane active" id="tabs-7" role="tabpanel">
+                        <div class="product__details__tab__content">
+                            <h3 >Mức độ hài lòng {(rates.reduce((total, rate) => total += rate.star, 0)/rates.length)}/5</h3>
+                            {
+                                rates?.map(rate => (
+                                    <div key={rate._id} class="product__details__tab__content__item">
+                                        <StarRatings
+                                            rating={rate.star}
+                                            starRatedColor="#fa8c16"
+                                            numberOfStars={5}
+                                            name='rating'
+                                            starDimension="25px"
+                                            starSpacing="5px"
+                                        />
+                                        <p><strong>{rate.r_user.name}</strong>: {rate.comment}</p>
+                                        <strong>{fDate(rate.createdAt)}</strong>
+                                    </div>
+                                ))
+                            }
+
+                        </div>
+                    </div>
+                </div>
+                {/* <Section>
                 <SectionTitle>
                     Khám phá thêm
                 </SectionTitle>
@@ -85,7 +131,7 @@ const Product = props => {
                     </Grid>
                 </SectionBody>
             </Section> */}
-        </Helmet>
+            </Helmet>
     )
 }
 

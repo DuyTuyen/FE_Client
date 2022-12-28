@@ -17,7 +17,7 @@ import { useDispatch } from 'react-redux'
 import makeRequest from '../api/axios'
 import { useState } from 'react'
 import axios from 'axios'
-import { setError } from '../redux/responoseAPI/errorSlice'
+import { clearError, setError } from '../redux/responoseAPI/errorSlice'
 
 const Home = () => {
     const [products, setProducts] = useState([])
@@ -30,6 +30,7 @@ const Home = () => {
         Promise.all([makeRequest.productAPI.getAll()])
           .then((results) => {
             setProducts(results[0].data)
+            dispatch(clearError())
           })
           .catch(error => {
             if (axios.isAxiosError(error))
@@ -44,6 +45,8 @@ const Home = () => {
       }, [dispatch,history])
 
     return (
+        loading ?
+        "loading...":
         <Helmet title="Trang chủ">
             {/* hero slider */}
             <HeroSlider

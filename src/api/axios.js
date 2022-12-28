@@ -6,42 +6,18 @@ const axi = axios.create({
 
 const categoryAPI = {
     getAll: () => axi.get(`/category`),
-    create: (formData) => axi.post(`/category`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
-            }
-        }),
-    update: (id, formData) => axi.put(`/category/${id}`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `multipart/form-data; boundary=${formData._boundary}`
-            }
-        }),
-    delete: (id) => axi.delete(`/category/${id}`),
+}
 
+const brandAPI = {
+    getAll: () => axi.get(`/brand`),
 }
 
 const productAPI = {
     getAll: () => axi.get(`/product`),
+    search: (searchTerm) => axi.get(`/product?name=${searchTerm}`),
+    filter: (myFilter) => axi.get(`/product?${myFilter}`),
     getById: (id) => axi.get(`/product/${id}`),
-    getByCategoryId: (id) => axi.get(`/product/byCategory/${id}`),
-    create: (formData) => axi.post(`/product`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `application/json`
-            }
-        }),
-    update: (id, formData) => axi.put(`/product/${id}`,
-        formData,
-        {
-            headers: {
-                'Content-Type': `application/json`
-            }
-        }),
+    getByCategoryId: (id) => axi.get(`/product?r_category=${id}`),
 }
 
 const provinceAPI = {
@@ -51,11 +27,50 @@ const provinceAPI = {
 }
 
 const orderAPI = {
-    create: (data) => axi.post(`/order`,data,{
+    create: (token, data) => axi.post(`/order`,data,{
         headers: {
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
+            "x-access-token": token
+        }
+    }),
+    getAll: (token) => axi.get(`/order/byUser`,{
+        headers: {
+            "x-access-token": token
         }
     })
 }
 
-export default { categoryAPI, productAPI, provinceAPI, orderAPI };
+const ratingAPI = {
+    create: (token, data) => axi.post(`/rate`,data,{
+        headers: {
+            "Content-Type": "application/json",
+            "x-access-token": token
+        }
+    }),
+    getByProductId: (id) => axi.get(`/rate/byProduct/${id}`)
+}
+
+const userAPI = {
+    login: (data) => axi.post(`/user/login`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+    register: (data) => axi.post(`/user/register`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+    forgotPassword: (data) => axi.post(`/user/forgot`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+    updateNewPassword: (data) => axi.post(`/user/updateNewPassword`,data,{
+        headers: {
+            'Content-Type': `application/json`
+        }
+    }),
+}
+
+export default { categoryAPI, brandAPI, productAPI, provinceAPI, orderAPI, userAPI, ratingAPI };

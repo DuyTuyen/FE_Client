@@ -8,11 +8,14 @@ import loadingReducer from './responoseAPI/loadingSlice'
 
 import errorReducer from './responoseAPI/errorSlice' 
 
+import tokenReducer from './token/tokenSlice'
+
 export const store = configureStore({
     reducer: {
         productModal: productModalReducer,
         cartItems: cartItemsReducer,
         loading: loadingReducer,
-        error: errorReducer 
+        error: errorReducer,
+        token: tokenReducer
     },
 })

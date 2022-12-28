@@ -47,7 +47,7 @@
         height: 100%;
         font-size: 1.5rem;
 
-        &__item ~ &__item {
+        &__item~&__item {
             margin-left: 39px;
 
             @include tablet {
@@ -78,11 +78,48 @@
             font-size: 2.25rem;
 
             &__item {
+                &__search {
+
+                    width: 0px;
+                    border: 0px;
+                    -webkit-transition: width 0.4s ease-in-out;
+                    transition: width 0.4s ease-in-out;
+
+                    &__active {
+                        width: 250px;
+                        border: 1px solid black;
+                        border-radius: 50px;
+                        -webkit-transition: width 0.4s ease-in-out;
+                        transition: width 0.4s ease-in-out;
+                    }
+                };
+
+                &__suggest-list {
+                    position: fixed;
+                    top: 100;
+                    width: 250px;
+                    border-radius: 5px;
+                    font-size: 15px;
+                };
+
+                &__quantity {
+                    color: black;
+                    border: 1px red solid;
+                    background-color: red;
+                    border-radius: 50%;
+                    font-size: 1rem;
+                }
+
+                ;
+
                 @include flex(center, center);
 
                 @include tablet {
                     margin-left: 10px;
                 }
+
+                ;
+                z-index: 9999;
             }
 
             @include mobile {
@@ -112,7 +149,7 @@
                     transform: translateX(0);
                 }
 
-                &__item ~ &__item {
+                &__item~&__item {
                     margin-left: unset;
                     margin-top: 20px;
                 }

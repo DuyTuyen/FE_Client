@@ -14,9 +14,15 @@ import { close, show } from '../redux/responoseAPI/loadingSlice'
 import makeRequest from '../api/axios'
 import axios from 'axios'
 import { setError } from '../redux/responoseAPI/errorSlice'
+import { clear } from '../redux/shopping-cart/cartItemsSlide'
 
 const Cart = () => {
-    const loading = useSelector((state) => state.loading.value)
+    const {loading,token} = useSelector((state) => {
+        return {
+            loading: state.loading.value,
+            token: state.token.value
+        }
+    })
     const cartItems = useSelector((state) => state.cartItems.value)
 
     const dispatch = useDispatch()
@@ -67,6 +73,7 @@ const Cart = () => {
     useEffect(() => {
         async function calculateShippingCharges() {
             try {
+                dispatch(show())
                 const resGeoCode = await makeRequest.provinceAPI.getGeoCodeing(`${address}, ${activeDistrict.name}, ${activeCity.name}`)
                 const firstGeoCode = resGeoCode.data.features[0].center
                 const myLng = parseFloat(process.env.REACT_APP_MY_GEOCODE_LNG)
@@ -85,19 +92,24 @@ const Cart = () => {
                 dispatch(close())
             }
         }
+        let myTimeout = null
         if (address !== "" && activeCity && activeDistrict)
-            calculateShippingCharges()
+            myTimeout = setTimeout(calculateShippingCharges, 1000)
+        return () => {
+            clearTimeout(myTimeout)
+        }
     }, [address, activeDistrict])
 
     async function handlePay() {
+        dispatch(show())
         try {
             if (name === "" || phone === "" || email === "" || address === "" || !activeCity || !activeDistrict)
                 return
-            const res = await makeRequest.orderAPI.create({
+            const res = await makeRequest.orderAPI.create(token,{
                 name,
                 phone,
                 email,
-                address,
+                address: `${address}, ${activeDistrict.name}, ${activeCity.name}`,
                 paymentType,
                 totalBill: totalPrice + shippingCharges,
                 r_orderDetails: cartItems.map(item => {
@@ -109,7 +121,11 @@ const Cart = () => {
                     }
                 })
             })
-            window.location.href = res.data.payUrl
+            dispatch(clear())
+            if (paymentType === 'momo')
+                window.location.href = res.data.payUrl
+            else
+                history.push(res.data.payUrl)
         } catch (error) {
             if (axios.isAxiosError(error))
                 dispatch(setError(error.response ? error.response.data.message : error.message))
@@ -124,93 +140,99 @@ const Cart = () => {
 
     return (
         loading ?
-            "loading" :
+            "loading..." :
             <Helmet title="Giỏ hàng">
-                <div className="cart">
-                    <div className="cart__list">
-                        {
-                            cartItems.map((item) => (
-                                <CartItem item={item} key={item._id} />
-                            ))
-                        }
-                    </div>
-                    <div className="cart__info">
-                        <div className="cart__info__txt">
-                            <Form>
-                                <Form.Group className="mb-3" >
-                                    <Form.Label>Tên người nhận</Form.Label>
-                                    <Form.Control value={name} onChange={(e) => { setName(e.target.value) }} type="text" placeholder="nhập tên người nhận" />
-                                </Form.Group>
+                {
+                    cartItems.length <= 0 ?
+                        <h2 style={{ textAlign: "center" }}>Chưa có sản phẩm trong giỏ hàng</h2> :
+                        <>
+                            <div className="cart">
+                                <div className="cart__list">
+                                    {
+                                        cartItems.map((item) => (
+                                            <CartItem item={item} key={item._id} />
+                                        ))
+                                    }
+                                </div>
+                                <div className="cart__info">
+                                    <div className="cart__info__txt">
+                                        <Form>
+                                            <Form.Group className="mb-3" >
+                                                <Form.Label>Tên người nhận</Form.Label>
+                                                <Form.Control value={name} onChange={(e) => { setName(e.target.value) }} type="text" placeholder="nhập tên người nhận" />
+                                            </Form.Group>
 
-                                <Form.Group className="mb-3" >
-                                    <Form.Label>Số điện thoại</Form.Label>
-                                    <Form.Control value={phone} onChange={(e) => { setPhone(e.target.value) }} type="text" placeholder="nhập số điện thoại người nhận" />
-                                </Form.Group>
+                                            <Form.Group className="mb-3" >
+                                                <Form.Label>Số điện thoại</Form.Label>
+                                                <Form.Control pattern="(84|0[3|5|7|8|9])+([0-9]{8})\b" value={phone} onChange={(e) => { setPhone(e.target.value) }} type="text" placeholder="nhập số điện thoại người nhận" />
+                                            </Form.Group>
 
-                                <Form.Group className="mb-3" >
-                                    <Form.Label>Email</Form.Label>
-                                    <Form.Control value={email} onChange={(e) => { setEmail(e.target.value) }} type="email" placeholder="nhập địa chỉ email" />
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <Form.Label>Phương thức thanh toán</Form.Label>
-                                    <Form.Select onChange={(e) => { setPaymentType(e.target.value) }} class="mb-3">
-                                        <option value="in_person">Thanh toán khi nhận hàng</option>
-                                        <option value="momo">Thanh toán qua ví MoMo</option>
-                                    </Form.Select>
-                                </Form.Group>
-                                <Form.Group className="mb-3" >
-                                    <Form.Label>Địa chỉ giao hàng</Form.Label>
-                                    <Form.Control value={address} onChange={(e) => { setAddress(e.target.value) }} type="text" placeholder="nhập địa chỉ giao hàng" />
-                                </Form.Group>
-                                <Form.Group style={{ display: "flex" }} className="mb-3" >
-                                    <Form.Select onChange={(e) => {
-                                        const foundCity = cities.find(city => city.code === Number(e.target.value))
-                                        if (foundCity)
-                                            setActiveCity(foundCity)
-                                    }} style={{ marginRight: "5px" }}>
-                                        {
-                                            cities.map(city =>
-                                                <option key={city.code} value={city.code}>{city.name}</option>
-                                            )
-                                        }
-                                    </Form.Select>
-                                    <Form.Select onChange={(e) => {
-                                        const foundDistrict = districts.find(district => district.code === Number(e.target.value))
-                                        if (foundDistrict)
-                                            setActiveDistrict(foundDistrict)
-                                    }} style={{ marginRight: "5px" }}>
-                                        {
-                                            districts.map(district =>
-                                                <option key={district.code} value={district.code}>{district.name}</option>
-                                            )
-                                        }
-                                    </Form.Select>
-                                </Form.Group>
+                                            <Form.Group className="mb-3" >
+                                                <Form.Label>Email</Form.Label>
+                                                <Form.Control pattern="[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,4}$" value={email} onChange={(e) => { setEmail(e.target.value) }} type="email" placeholder="nhập địa chỉ email" />
+                                            </Form.Group>
+                                            <Form.Group className="mb-3" >
+                                                <Form.Label>Phương thức thanh toán</Form.Label>
+                                                <Form.Select onChange={(e) => { setPaymentType(e.target.value) }} class="mb-3">
+                                                    <option value="in_person">Thanh toán khi nhận hàng</option>
+                                                    <option value="momo">Thanh toán qua ví MoMo</option>
+                                                </Form.Select>
+                                            </Form.Group>
+                                            <Form.Group className="mb-3" >
+                                                <Form.Label>Địa chỉ giao hàng</Form.Label>
+                                                <Form.Control value={address} onChange={(e) => { setAddress(e.target.value) }} type="text" placeholder="nhập địa chỉ giao hàng" />
+                                            </Form.Group>
+                                            <Form.Group style={{ display: "flex" }} className="mb-3" >
+                                                <Form.Select onChange={(e) => {
+                                                    const foundCity = cities.find(city => city.code === Number(e.target.value))
+                                                    if (foundCity)
+                                                        setActiveCity(foundCity)
+                                                }} style={{ marginRight: "5px" }}>
+                                                    {
+                                                        cities.map(city =>
+                                                            <option key={city.code} value={city.code}>{city.name}</option>
+                                                        )
+                                                    }
+                                                </Form.Select>
+                                                <Form.Select onChange={(e) => {
+                                                    const foundDistrict = districts.find(district => district.code === Number(e.target.value))
+                                                    if (foundDistrict)
+                                                        setActiveDistrict(foundDistrict)
+                                                }} style={{ marginRight: "5px" }}>
+                                                    {
+                                                        districts.map(district =>
+                                                            <option key={district.code} value={district.code}>{district.name}</option>
+                                                        )
+                                                    }
+                                                </Form.Select>
+                                            </Form.Group>
 
-                            </Form>
-                            <p className="h1 cart__info__txt__breakLine">-------------------------------------</p>
-                            <div className="cart__info__txt__price">
-                                <span>Phí vận chuyển:</span> <span style={{ color: "black" }}>{numberWithCommas(shippingCharges)}</span>
+                                        </Form>
+                                        <p className="h1 cart__info__txt__breakLine">-------------------------------------</p>
+                                        <div className="cart__info__txt__price">
+                                            <span>Phí vận chuyển:</span> <span style={{ color: "black" }}>{numberWithCommas(shippingCharges)}</span>
+                                        </div>
+                                        <div className="cart__info__txt__price">
+                                            <span>Tạm tính:</span> <span style={{ color: "black" }}>{numberWithCommas(totalPrice)}</span>
+                                        </div>
+                                        <div className="cart__info__txt__price">
+                                            <span>Tổng:</span> <span>{numberWithCommas(totalPrice + shippingCharges)}</span>
+                                        </div>
+                                    </div>
+                                    <div className="cart__info__btn">
+                                        <Button onClick={handlePay} size="block">
+                                            Đặt hàng
+                                        </Button>
+                                        <Link to="/products">
+                                            <Button size="block">
+                                                Tiếp tục mua hàng
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
                             </div>
-                            <div className="cart__info__txt__price">
-                                <span>Tạm tính:</span> <span style={{ color: "black" }}>{numberWithCommas(totalPrice)}</span>
-                            </div>
-                            <div className="cart__info__txt__price">
-                                <span>Tổng:</span> <span>{numberWithCommas(totalPrice + shippingCharges)}</span>
-                            </div>
-                        </div>
-                        <div className="cart__info__btn">
-                            <Button onClick={handlePay} size="block">
-                                Đặt hàng
-                            </Button>
-                            <Link to="/products">
-                                <Button size="block">
-                                    Tiếp tục mua hàng
-                                </Button>
-                            </Link>
-                        </div>
-                    </div>
-                </div>
+                        </>
+                }
             </Helmet>
     )
 }
