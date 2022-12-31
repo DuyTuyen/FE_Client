@@ -13,9 +13,11 @@ import { clearError, setError } from '../redux/responoseAPI/errorSlice'
 import axios from 'axios'
 import { useSelector } from 'react-redux'
 import useQuery from '../hooks/useQuery'
-import { Card, CardGroup, Col, Container, Row } from 'react-bootstrap'
 import COLOR from '../enums/Color'
 import SIZE from '../enums/Size'
+import Section, { SectionBody } from '../components/Section'
+import Grid from '../components/Grid'
+import CategoryCard from '../components/CategoryCard'
 
 const Products = () => {
     const cateId = useQuery().get("cateId")
@@ -84,9 +86,11 @@ const Products = () => {
 
     }
     useEffect(() => {
-        if(cateId)
-            setActiveCategory(categories.find(c => c._id === cateId))
-    },[cateId])
+        if (cateId && categories.length > 0){
+            const foundCate = categories.find(c => c._id === cateId)
+            setActiveCategory(foundCate)
+        }
+    }, [cateId,categories])
 
     useEffect(() => {
         async function getProducts() {
@@ -95,7 +99,7 @@ const Products = () => {
                 let res = null
                 if (searchTerm)
                     res = await makeRequest.productAPI.search(searchTerm)
-                if(activeCategory)
+                if (activeCategory)
                     res = await makeRequest.productAPI.getByCategoryId(activeCategory._id)
                 else
                     res = await makeRequest.productAPI.getAll()
@@ -113,7 +117,7 @@ const Products = () => {
             }
         }
         getProducts()
-    }, [searchTerm,activeCategory])
+    }, [searchTerm, activeCategory])
 
     useEffect(() => {
         dispatch(show())
@@ -142,11 +146,13 @@ const Products = () => {
                 dispatch(show())
                 let myFilter = ""
                 if (!filter.r_brand.includes("all"))
-                    myFilter += filter.r_brand.reduce((q_brand, item) => `${q_brand}r_brand[]=${item}&`,"")
+                    myFilter += filter.r_brand.reduce((q_brand, item) => `${q_brand}r_brand[]=${item}&`, "")
                 if (!filter.color.includes("all"))
-                    myFilter += filter.color.reduce((q_color, item) => `${q_color}color[]=${item}&`,"")
+                    myFilter += filter.color.reduce((q_color, item) => `${q_color}color[]=${item}&`, "")
                 if (!filter.size.includes("all"))
-                    myFilter += filter.size.reduce((q_size, item) => `${q_size}size[]=${item}&`,"")
+                    myFilter += filter.size.reduce((q_size, item) => `${q_size}size[]=${item}&`, "")
+                if (activeCategory)
+                    myFilter += `r_category=${activeCategory._id}`
                 const res = await makeRequest.productAPI.filter(myFilter)
                 setProducts(res.data)
             } catch (error) {
@@ -156,35 +162,45 @@ const Products = () => {
                     dispatch(setError(error.toString()))
                 history.push("/error")
             }
-            finally{
+            finally {
                 dispatch(close())
             }
         }
-        if(filter !== initFilter)
+        if (filter !== initFilter)
             filterProducts()
     }, [filter])
 
     return (
         <Helmet title="Sản phẩm">
-            <Container fluid>
-                <CardGroup style={{ marginBottom: "50px" }}>
-                    <Row xs={1} md={4} className="g-4">
-
+            <Section>
+                <SectionBody>
+                    <Grid
+                        col={8}
+                        mdCol={4}
+                        smCol={4}
+                        gap={20}
+                    >
                         {
-                            categories.map(cate => (
-                                <Col onClick={(e) => { setActiveCategory(cate) }} style={{ cursor: "pointer" }}>
-                                    <Card style={{ width: '12rem', height: '8rem', display: "flex", alignItems: "center", padding: 7, border: "2px solid", borderColor: cate._id === activeCategory?._id ? "#0d6efd" : "white" }}>
-                                        <Card.Img style={{ width: '8rem', height: '5rem' }} variant="top" src={`${process.env.REACT_APP_CLOUDINARYURL}/${cate.img}`} />
-                                        <Card.Body>
-                                            <Card.Title>{cate.name}</Card.Title>
-                                        </Card.Body>
-                                    </Card>
-                                </Col>
+                            categories.map((item) => (
+                                <div
+                                    onClick={() => {
+                                        if (item._id === activeCategory?._id)
+                                            setActiveCategory(null)
+                                        else
+                                            setActiveCategory(item)
+                                    }}
+                                >
+                                    <CategoryCard
+                                        style={{ cursor: "pointer", borderColor: item._id === activeCategory?._id ? "blue" : "white" }}
+                                        key={item._id}
+                                        item={item}
+                                    />
+                                </div>
                             ))
                         }
-                    </Row>
-                </CardGroup>
-            </Container>
+                    </Grid>
+                </SectionBody>
+            </Section>
             <div className="catalog">
                 <div className="catalog__filter" ref={filterRef}>
                     <div className="catalog__filter__close" onClick={() => showHideFilter()}>

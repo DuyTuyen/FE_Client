@@ -72,7 +72,7 @@ const Header = () => {
             history.push("/login")
     }
 
-    function closeSearchbar(){
+    function closeSearchbar() {
         setSearchTerm("")
         setIsShowSearchbar(false)
     }
@@ -150,7 +150,10 @@ const Header = () => {
                                     }
                                 </ListGroup>
                             </Form>
-                            <i onClick={() => { setIsShowSearchbar(!isShowSearchbar) }} className="bx bx-search"></i>
+                            <i onClick={() => {
+                                setSearchTerm("")
+                                setIsShowSearchbar(!isShowSearchbar)
+                            }} className="bx bx-search"></i>
                         </div>
                         <div className="header__menu__item header__menu__right__item">
                             <Link to="/cart">

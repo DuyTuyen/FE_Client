@@ -18,95 +18,126 @@ import makeRequest from '../api/axios'
 import { useState } from 'react'
 import axios from 'axios'
 import { clearError, setError } from '../redux/responoseAPI/errorSlice'
+import CategoryCard from '../components/CategoryCard'
 
 const Home = () => {
     const [products, setProducts] = useState([])
+    const [categories, setCategories] = useState([])
     const loading = useSelector(state => state.loading.value)
     const dispatch = useDispatch()
     const history = useHistory()
-    
+
     useEffect(() => {
         dispatch(show())
-        Promise.all([makeRequest.productAPI.getAll()])
-          .then((results) => {
-            setProducts(results[0].data)
-            dispatch(clearError())
-          })
-          .catch(error => {
-            if (axios.isAxiosError(error))
-              dispatch(setError(error.response ? error.response.data.message : error.message))
-            else
-              dispatch(setError(error.toString()))
-            history.push("/error")
-          })
-          .finally(() => {
-            dispatch(close())
-          })
-      }, [dispatch,history])
+        Promise.all([makeRequest.productAPI.getAll(),makeRequest.categoryAPI.getAll()])
+            .then((results) => {
+                setProducts(results[0].data)
+                setCategories(results[1].data)
+                dispatch(clearError())
+            })
+            .catch(error => {
+                if (axios.isAxiosError(error))
+                    dispatch(setError(error.response ? error.response.data.message : error.message))
+                else
+                    dispatch(setError(error.toString()))
+                history.push("/error")
+            })
+            .finally(() => {
+                dispatch(close())
+            })
+    }, [dispatch, history])
 
     return (
         loading ?
-        "loading...":
-        <Helmet title="Trang chủ">
-            {/* hero slider */}
-            <HeroSlider
-                data={products.slice(0,3)}
-                control={true}
-                auto={false}
-                timeOut={5000}
-            />
-            {/* end hero slider */}
+            "loading..." :
+            <Helmet title="Trang chủ">
+                {/* hero slider */}
+                <HeroSlider
+                    data={products.slice(0, 3)}
+                    control={true}
+                    auto={false}
+                    timeOut={5000}
+                />
+                {/* end hero slider */}
 
-            {/* policy section */}
-            <Section>
-                <SectionBody>
-                    <Grid
-                        col={4}
-                        mdCol={2}
-                        smCol={1}
-                        gap={20}
-                    >
-                        {
-                            policy.map((item, index) => <Link key={index} to="/policy">
-                                <PolicyCard
-                                    name={item.name}
-                                    description={item.description}
-                                    icon={item.icon}
-                                />
-                            </Link>)
-                        }
-                    </Grid>
-                </SectionBody>
-            </Section>
-            {/* end policy section */}
+                {/* policy section */}
+                <Section>
+                    <SectionBody>
+                        <Grid
+                            col={4}
+                            mdCol={2}
+                            smCol={1}
+                            gap={20}
+                        >
+                            {
+                                policy.map((item, index) => <Link key={index} to="/policy">
+                                    <PolicyCard
+                                        name={item.name}
+                                        description={item.description}
+                                        icon={item.icon}
+                                    />
+                                </Link>)
+                            }
+                        </Grid>
+                    </SectionBody>
+                </Section>
+                {/* end policy section */}
 
-            {/* best selling section */}
-            <Section>
-                <SectionTitle>
-                    top sản phẩm bán chạy trong tuần
-                </SectionTitle>
-                <SectionBody>
-                    <Grid
-                        col={4}
-                        mdCol={2}
-                        smCol={1}
-                        gap={20}
-                    >
-                        {
-                            products.map((item) => (
-                                <ProductCard
-                                    key={item._id}
-                                    product={item}
-                                />
-                            ))
-                        }
-                    </Grid>
-                </SectionBody>
-            </Section>
-            {/* end best selling section */}
+                {/*  categories */}
+                <Section>
+                    <SectionTitle>
+                        Danh mục sản phẩm
+                    </SectionTitle>
+                    <SectionBody>
+                        <Grid
+                            col={8}
+                            mdCol={4}
+                            smCol={4}
+                            gap={20}
+                        >
+                            {
+                                categories.map((item) => (
+                                    <Link to={`/products?cateId=${item._id}`}>
+                                        <CategoryCard
+                                            key={item._id}
+                                            item={item}
+                                        />
+                                    </Link>
 
-            {/* new arrival section */}
-            {/* <Section>
+                                ))
+                            }
+                        </Grid>
+                    </SectionBody>
+                </Section>
+                {/* end categories  */}
+                
+                {/* best selling section */}
+                <Section>
+                    <SectionTitle>
+                        top sản phẩm bán chạy trong tuần
+                    </SectionTitle>
+                    <SectionBody>
+                        <Grid
+                            col={4}
+                            mdCol={2}
+                            smCol={1}
+                            gap={20}
+                        >
+                            {
+                                products.map((item) => (
+                                    <ProductCard
+                                        key={item._id}
+                                        product={item}
+                                    />
+                                ))
+                            }
+                        </Grid>
+                    </SectionBody>
+                </Section>
+                {/* end best selling section */}
+
+                {/* new arrival section */}
+                {/* <Section>
                 <SectionTitle>
                     sản phẩm mới
                 </SectionTitle>
@@ -132,20 +163,20 @@ const Home = () => {
                     </Grid>
                 </SectionBody>
             </Section> */}
-            {/* end new arrival section */}
-            
-            {/* banner */}
-            <Section>
-                <SectionBody>
-                    <Link to="/catalog">
-                        <img src={banner} alt="" />
-                    </Link>
-                </SectionBody>
-            </Section>
-            {/* end banner */}
+                {/* end new arrival section */}
 
-            {/* popular product section */}
-            {/* <Section>
+                {/* banner */}
+                <Section>
+                    <SectionBody>
+                        <Link to="/catalog">
+                            <img src={banner} alt="" />
+                        </Link>
+                    </SectionBody>
+                </Section>
+                {/* end banner */}
+
+                {/* popular product section */}
+                {/* <Section>
                 <SectionTitle>
                     phổ biến
                 </SectionTitle>
@@ -171,8 +202,8 @@ const Home = () => {
                     </Grid>
                 </SectionBody>
             </Section> */}
-            {/* end popular product section */}
-        </Helmet>
+                {/* end popular product section */}
+            </Helmet>
     )
 }
 

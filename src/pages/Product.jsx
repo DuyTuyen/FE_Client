@@ -23,6 +23,7 @@ const Product = props => {
     const { id } = useParams()
 
     const [product, setProduct] = useState(null)
+    const [relatedProducts, setRelatedProducts] = useState([])
     const [rates, setRates] = useState([])
 
     const loading = useSelector(state => state.loading.value)
@@ -72,8 +73,26 @@ const Product = props => {
     }, [id])
 
 
-    React.useEffect(() => {
+    useEffect(() => {
         window.scrollTo(0, 0)
+        async function getRelatedProducts(){
+            dispatch(show())
+            try {
+                const res = await makeRequest.productAPI.getByCategoryId(product.r_category._id)
+                const filterData = res.data.filter(item => item._id !== product._id)
+                setRelatedProducts(filterData)
+            } catch (error) {
+                if (axios.isAxiosError(error))
+                    dispatch(setError(error.response ? error.response.data.message : error.message))
+                else
+                    dispatch(setError(error.toString()))
+                history.push("/error")
+            } finally {
+                dispatch(close())
+            }
+        }
+        if(product)
+            getRelatedProducts()
     }, [product])
 
     return (
@@ -109,7 +128,7 @@ const Product = props => {
                         </div>
                     </div>
                 </div>
-                {/* <Section>
+             <Section>
                 <SectionTitle>
                     Khám phá thêm
                 </SectionTitle>
@@ -130,7 +149,7 @@ const Product = props => {
                         }
                     </Grid>
                 </SectionBody>
-            </Section> */}
+            </Section> 
             </Helmet>
     )
 }

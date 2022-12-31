@@ -67,7 +67,7 @@ function Order() {
                     <thead>
                         <tr>
                             <th></th>
-                            <th>Tên người nhận</th>
+                            <th>Tên người nhận </th>
                             <th>Số diện thoại</th>
                             <th>Email</th>
                             <th>Nơi nhận hàng</th>
