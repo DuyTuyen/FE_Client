@@ -11,6 +11,7 @@ import { close, show } from '../redux/responoseAPI/loadingSlice'
 import { clearValue } from '../redux/token/tokenSlice'
 
 import makeRequest from '../api/axios'
+import Notification from './Notification'
 
 const mainNav = [
     {
@@ -21,21 +22,13 @@ const mainNav = [
         display: "Sản phẩm",
         path: "/products"
     },
-    {
-        display: "Phụ kiện",
-        path: "/accessories"
-    },
-    {
-        display: "Liên hệ",
-        path: "/contact"
-    }
 ]
 
 const Header = () => {
     const [isShowSearchbar, setIsShowSearchbar] = useState(false)
     const [searchTerm, setSearchTerm] = useState("")
     const [suggestedProcucts, setSuggestedProducts] = useState([])
-
+    const [notifications, setNotifications] = useState([])
     const { token, cartItems, loading } = useSelector(state => {
         return {
             token: state.token.value,
@@ -66,6 +59,19 @@ const Header = () => {
         </i>
     ))
 
+    const CustomBellToggle = React.forwardRef(({ children, onClick }, ref) => (
+        <i
+            className="bx bx-bell"
+            ref={ref}
+            onClick={(e) => {
+                e.preventDefault();
+                onClick(e);
+            }}
+        >
+            {notifications?.filter(n => !n.isRead).length > 0 && <span className="header__menu__right__item__quantity">{notifications?.filter(n => !n.isRead).length}</span>}
+        </i>
+    ))
+
     function handleLogout() {
         dispatch(clearValue())
         if (window.confirm("đang xuất thành công, bạn có muốn chuyển đến trang đăng nhập?"))
@@ -82,6 +88,39 @@ const Header = () => {
         history.push(`/products?searchTerm=${searchTerm}`)
         closeSearchbar()
     }
+
+
+    const handleMarkRead = async (notification) => {
+        dispatch(show());
+        try {
+          await makeRequest.notificationAPI.updateIsRead(notification._id);
+        } catch (error) {
+          if (axios.isAxiosError(error))
+            dispatch(setError(error.response ? error.response.data.message : error.message));
+          else dispatch(setError(error.toString()));
+          history.push("/error")
+        } finally {
+          dispatch(close());
+        }
+      }
+    
+      const handleMarkAllAsRead = async () => {
+        try {
+            const temp = notifications.filter(n => !n.isRead)
+            if(temp.length >0){
+                await Promise.all(temp.map(n => handleMarkRead(n)))
+                const tempNotifications = [...notifications.map(n => {
+                    return {
+                        ...n,
+                        isRead:true
+                    }
+                })]
+                setNotifications(tempNotifications)
+            }
+        } catch (error) {
+            console.log(error)
+        }
+      };
 
     useEffect(() => {
         async function search() {
@@ -105,6 +144,22 @@ const Header = () => {
             clearTimeout(myTimeout)
         }
     }, [searchTerm])
+
+    useEffect(() => {
+        async function getNotifications() {
+            try {
+                const res = await makeRequest.notificationAPI.getAll(token)
+                setNotifications(res.data)
+            } catch (error) {
+                if (axios.isAxiosError(error))
+                    dispatch(setError(error.response ? error.response.data.message : error.message))
+                else
+                    dispatch(setError(error.toString()))
+                history.push("/error")
+            }
+        }
+        getNotifications()
+    }, [])
 
     return (
         <div className="header shrink" >
@@ -171,24 +226,24 @@ const Header = () => {
                                         token === "" ?
                                             <>
                                                 <Dropdown.Item>
-                                                    <Link to="login">
+                                                    <Link to="/login">
                                                         Đăng nhập
                                                     </Link>
                                                 </Dropdown.Item>
                                                 <Dropdown.Item>
-                                                    <Link to="register">
+                                                    <Link to="/register">
                                                         Đăng ký
                                                     </Link>
                                                 </Dropdown.Item>
                                             </> :
                                             <>
                                                 <Dropdown.Item>
-                                                    <Link to="user">
+                                                    <Link to="/user">
                                                         Thông tin tài khoản
                                                     </Link>
                                                 </Dropdown.Item>
                                                 <Dropdown.Item>
-                                                    <Link to="order">
+                                                    <Link to="/order">
                                                         Xem đơn hàng
                                                     </Link>
                                                 </Dropdown.Item>
@@ -196,6 +251,23 @@ const Header = () => {
                                                     Đăng xuất
                                                 </Dropdown.Item>
                                             </>
+                                    }
+                                </Dropdown.Menu>
+                            </Dropdown>
+                        </div>
+                        <div className="header__menu__item header__menu__right__item">
+                            <Dropdown onClick= {handleMarkAllAsRead}>
+                                <Dropdown.Toggle as={CustomBellToggle}>
+                                </Dropdown.Toggle>
+                                <Dropdown.Menu>
+                                    {
+                                        notifications.map(n => (
+                                            <Dropdown.Item key={n._id} >
+                                                <Notification
+                                                    notification={n}
+                                                />
+                                            </Dropdown.Item>
+                                        ))
                                     }
                                 </Dropdown.Menu>
                             </Dropdown>

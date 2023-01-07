@@ -1,4 +1,6 @@
 import { format, getTime, formatDistanceToNow } from 'date-fns';
+import viLocale from "date-fns/locale/vi";
+
 
 // ----------------------------------------------------------------------
 
@@ -22,6 +24,9 @@ export function fToNow(date) {
   return date
     ? formatDistanceToNow(new Date(date), {
         addSuffix: true,
+        locale: {
+          ...viLocale,
+      }
       })
     : '';
 }

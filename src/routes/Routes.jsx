@@ -11,6 +11,7 @@ import Register from '../pages/Register'
 import ForgotPassword from '../pages/ForgotPassword'
 import UpdateNewPassword from '../pages/UpdateNewPassword'
 import Order from '../pages/Order'
+import User from '../pages/User'
 
 const Routes = () => {
     return (
@@ -23,6 +24,7 @@ const Routes = () => {
             <Route path='/register' component={Register}/>
             <Route path='/forgot' component={ForgotPassword}/>
             <Route path='/order' component={Order}/>
+            <Route path='/user' component={User}/>
             <Route path='/updateNewPassword/:token' component={UpdateNewPassword}/>
         </Switch>
     )

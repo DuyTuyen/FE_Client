@@ -67,7 +67,7 @@ const Product = props => {
             }
         }
         getProductById()
-        if(id){
+        if (id) {
             getRates(id)
         }
     }, [id])
@@ -75,7 +75,7 @@ const Product = props => {
 
     useEffect(() => {
         window.scrollTo(0, 0)
-        async function getRelatedProducts(){
+        async function getRelatedProducts() {
             dispatch(show())
             try {
                 const res = await makeRequest.productAPI.getByCategoryId(product.r_category._id)
@@ -91,7 +91,7 @@ const Product = props => {
                 dispatch(close())
             }
         }
-        if(product)
+        if (product)
             getRelatedProducts()
     }, [product])
 
@@ -107,7 +107,7 @@ const Product = props => {
                 <div style={{ marginTop: "30px" }} class="tab-content">
                     <div class="tab-pane active" id="tabs-7" role="tabpanel">
                         <div class="product__details__tab__content">
-                            <h3 >Mức độ hài lòng {(rates.reduce((total, rate) => total += rate.star, 0)/rates.length)}/5</h3>
+                            <h3 >Mức độ hài lòng {(rates.reduce((total, rate) => total += rate.star, 0) / rates.length) || 5}/5</h3>
                             {
                                 rates?.map(rate => (
                                     <div key={rate._id} class="product__details__tab__content__item">
@@ -119,37 +119,36 @@ const Product = props => {
                                             starDimension="25px"
                                             starSpacing="5px"
                                         />
-                                        <p><strong>{rate.r_user.name}</strong>: {rate.comment}</p>
+                                        <p><strong>{rate.r_user?.name}</strong>: {rate.comment}</p>
                                         <strong>{fDate(rate.createdAt)}</strong>
                                     </div>
                                 ))
                             }
-
                         </div>
                     </div>
                 </div>
-             <Section>
-                <SectionTitle>
-                    Khám phá thêm
-                </SectionTitle>
-                <SectionBody>
-                    <Grid
-                        col={4}
-                        mdCol={2}
-                        smCol={1}
-                        gap={20}
-                    >
-                        {
-                            relatedProducts.map((item, index) => (
-                                <ProductCard
-                                    key={index}
-                                    product={item}
-                                />   
-                            ))
-                        }
-                    </Grid>
-                </SectionBody>
-            </Section> 
+                <Section>
+                    <SectionTitle>
+                        Khám phá thêm
+                    </SectionTitle>
+                    <SectionBody>
+                        <Grid
+                            col={4}
+                            mdCol={2}
+                            smCol={1}
+                            gap={20}
+                        >
+                            {
+                                relatedProducts.map((item, index) => (
+                                    <ProductCard
+                                        key={index}
+                                        product={item}
+                                    />
+                                ))
+                            }
+                        </Grid>
+                    </SectionBody>
+                </Section>
             </Helmet>
     )
 }

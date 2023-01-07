@@ -51,6 +51,17 @@ const ratingAPI = {
 }
 
 const userAPI = {
+    getUserInfo: (token) => axi.get(`/user`,{
+        headers: {
+            'x-access-token': token
+        }
+    }),
+    updateUserInfo: (token,data) => axi.put(`/user`,data,{
+        headers: {
+            'Content-Type': `application/json`,
+            'x-access-token': token
+        }
+    }),
     login: (data) => axi.post(`/user/login`,data,{
         headers: {
             'Content-Type': `application/json`
@@ -73,4 +84,12 @@ const userAPI = {
     }),
 }
 
-export default { categoryAPI, brandAPI, productAPI, provinceAPI, orderAPI, userAPI, ratingAPI };
+const notificationAPI = {
+    getAll: (token) => axi.get(`/notification`,{
+        headers: {
+            'x-access-token': token
+        }
+    }),
+    updateIsRead: (id) => axi.put(`/notification/${id}`)
+}
+export default { categoryAPI, brandAPI, productAPI, provinceAPI, orderAPI, userAPI, ratingAPI, notificationAPI };
