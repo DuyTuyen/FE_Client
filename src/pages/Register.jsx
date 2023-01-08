@@ -32,6 +32,7 @@ function Register() {
             const res = await makeRequest.userAPI.register({ username, password,name,email,phone,address, role:"Customer" })
             dispatch(setValue(res.data))
             dispatch(clearError())
+            alert("Đăng ký thành công, chào mừng bạn")
             history.push("/")
         }  catch (error) {
             if (axios.isAxiosError(error))

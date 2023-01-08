@@ -22,9 +22,6 @@ import CategoryCard from '../components/CategoryCard'
 const Products = () => {
     const cateId = useQuery().get("cateId")
     const searchTerm = useQuery().get("searchTerm")
-
-    const [activeCategory, setActiveCategory] = useState(null)
-
     const loading = useSelector(state => state.loading.value)
     const dispatch = useDispatch()
     const history = useHistory()
@@ -34,11 +31,11 @@ const Products = () => {
         color: [],
         size: []
     }
-
+    const [activeCategory, setActiveCategory] = useState(null)
     const [products, setProducts] = useState([])
+    const [pagination, setPagination] = useState(null)
     const [categories, setCategories] = useState([])
     const [brands, setBrands] = useState([])
-
     const [filter, setFilter] = useState(initFilter)
 
     const clearFilter = () => setFilter(initFilter)
@@ -85,6 +82,34 @@ const Products = () => {
         }
 
     }
+
+    const handleChangePage = async (activePage) => {
+        try {
+            dispatch(show())
+            let myFilter = `reqPage=${activePage}`
+            if (!filter.r_brand.includes("all"))
+                myFilter += filter.r_brand.reduce((q_brand, item) => `${q_brand}r_brand[]=${item}&`, "")
+            if (!filter.color.includes("all"))
+                myFilter += filter.color.reduce((q_color, item) => `${q_color}color[]=${item}&`, "")
+            if (!filter.size.includes("all"))
+                myFilter += filter.size.reduce((q_size, item) => `${q_size}size[]=${item}&`, "")
+            if (activeCategory)
+                myFilter += `r_category=${activeCategory._id}`
+            const res = await makeRequest.productAPI.filter(myFilter)
+            setProducts(res.data.docs)
+            setPagination({activePage: res.data.page, totalPages: res.data.totalPages})
+        } catch (error) {
+            if (axios.isAxiosError(error))
+                dispatch(setError(error.response ? error.response.data.message : error.message))
+            else
+                dispatch(setError(error.toString()))
+            history.push("/error")
+        }
+        finally {
+            dispatch(close())
+        }
+    }
+
     useEffect(() => {
         if (cateId && categories.length > 0){
             const foundCate = categories.find(c => c._id === cateId)
@@ -103,7 +128,8 @@ const Products = () => {
                     res = await makeRequest.productAPI.getByCategoryId(activeCategory._id)
                 else
                     res = await makeRequest.productAPI.getAll()
-                setProducts(res.data)
+                setProducts(res.data.docs)
+                setPagination({activePage: res.data.page, totalPages: res.data.totalPages})
                 dispatch(clearError())
             } catch (error) {
                 if (axios.isAxiosError(error))
@@ -123,7 +149,6 @@ const Products = () => {
         dispatch(show())
         Promise.all([makeRequest.categoryAPI.getAll(), makeRequest.brandAPI.getAll()])
             .then(results => {
-                console.log(results)
                 setCategories(results[0].data)
                 setBrands(results[1].data)
                 dispatch(clearError())
@@ -154,7 +179,8 @@ const Products = () => {
                 if (activeCategory)
                     myFilter += `r_category=${activeCategory._id}`
                 const res = await makeRequest.productAPI.filter(myFilter)
-                setProducts(res.data)
+                setProducts(res.data.docs)
+                setPagination({activePage: res.data.page, totalPages: res.data.totalPages})
             } catch (error) {
                 if (axios.isAxiosError(error))
                     dispatch(setError(error.response ? error.response.data.message : error.message))
@@ -308,6 +334,8 @@ const Products = () => {
                             "loading..." :
                             <InfinityList
                                 data={products}
+                                pagination={pagination}
+                                onChangePage={handleChangePage}
                             />
                     }
                 </div>

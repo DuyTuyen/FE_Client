@@ -31,7 +31,7 @@ const Home = () => {
         dispatch(show())
         Promise.all([makeRequest.productAPI.getAll(),makeRequest.categoryAPI.getAll()])
             .then((results) => {
-                setProducts(results[0].data)
+                setProducts(results[0].data.docs)
                 setCategories(results[1].data)
                 dispatch(clearError())
             })

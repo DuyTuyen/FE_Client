@@ -127,7 +127,7 @@ const Header = () => {
             if (searchTerm !== "") {
                 try {
                     const res = await makeRequest.productAPI.search(searchTerm)
-                    setSuggestedProducts(res.data)
+                    setSuggestedProducts(res.data.docs)
                 } catch (error) {
                     if (axios.isAxiosError(error))
                         dispatch(setError(error.response ? error.response.data.message : error.message))

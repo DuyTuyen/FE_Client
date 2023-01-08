@@ -79,7 +79,7 @@ const Product = props => {
             dispatch(show())
             try {
                 const res = await makeRequest.productAPI.getByCategoryId(product.r_category._id)
-                const filterData = res.data.filter(item => item._id !== product._id)
+                const filterData = res.data.docs.filter(item => item._id !== product._id)
                 setRelatedProducts(filterData)
             } catch (error) {
                 if (axios.isAxiosError(error))
