@@ -31,7 +31,9 @@ export const cartItemsSlice = createSlice({
             } 
         },
         removeItem: (state, action) => {
-            const {id,size} = action.payload
+            console.log("aa")
+            console.log(action.payload)
+            const { id, size } = action.payload
             state.value = state.value.filter(e => e._id !== id && e.size !== size)
             localStorage.setItem('cartItems', JSON.stringify(state.value.sort((a, b) => a.id > b.id ? 1 : (a.id < b.id ? -1 : 0))))
         },

@@ -73,7 +73,6 @@ const Cart = () => {
     useEffect(() => {
         async function calculateShippingCharges() {
             try {
-                dispatch(show())
                 const resGeoCode = await makeRequest.provinceAPI.getGeoCodeing(`${address}, ${activeDistrict.name}, ${activeCity.name}`)
                 const firstGeoCode = resGeoCode.data.features[0].center
                 const myLng = parseFloat(process.env.REACT_APP_MY_GEOCODE_LNG)
@@ -88,9 +87,6 @@ const Cart = () => {
                     dispatch(setError(error.toString()))
                 history.push("/error")
             }
-            finally {
-                dispatch(close())
-            }
         }
         let myTimeout = null
         if (address !== "" && activeCity && activeDistrict)
@@ -101,6 +97,11 @@ const Cart = () => {
     }, [address, activeDistrict])
 
     async function handlePay() {
+        if (!token) {
+            alert("ban phai dang nhap de thuc hien chuc nang nay")
+                        history.push("/login");
+
+        }
         dispatch(show())
         try {
             if (name === "" || phone === "" || email === "" || address === "" || !activeCity || !activeDistrict)

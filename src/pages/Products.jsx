@@ -124,7 +124,7 @@ const Products = () => {
                 let res = null
                 if (searchTerm)
                     res = await makeRequest.productAPI.search(searchTerm)
-                if (activeCategory)
+                else if (activeCategory)
                     res = await makeRequest.productAPI.getByCategoryId(activeCategory._id)
                 else
                     res = await makeRequest.productAPI.getAll()

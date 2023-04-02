@@ -152,14 +152,13 @@ const Header = () => {
                 setNotifications(res.data)
             } catch (error) {
                 if (axios.isAxiosError(error))
-                    dispatch(setError(error.response ? error.response.data.message : error.message))
+                    console.log((error.response ? error.response.data.message : error.message))
                 else
-                    dispatch(setError(error.toString()))
-                history.push("/error")
+                    console.log(error.toString());
             }
         }
         getNotifications()
-    }, [])
+    }, [token])
 
     return (
         <div className="header shrink" >

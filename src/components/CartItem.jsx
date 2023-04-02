@@ -24,8 +24,7 @@ const CartItem = props => {
     }
 
     const removeCartItem = () => {
-        console.log('removeCartItem')
-        dispatch(removeItem({id: item._id, size: item.size}))
+        dispatch(removeItem(item))
     }
 
     return (
